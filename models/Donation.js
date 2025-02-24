@@ -5,7 +5,7 @@ const donationSchema = new mongoose.Schema({
     donationType: { type: String, enum: ['Regular', 'Mosuhimu Collection', 'Eid Collection', 'Others'], required: true },
     donationMonth: { type: String, required: true },
     amount: { type: String, required: true },
-    paymentMethod: { type: String, enum: ['Bkash', 'Nagad', 'Rocket', 'ByHand'], required: true },
+    paymentMethod: { type: String, enum: ['Bkash', 'Nagad', 'Rocket', 'By Hand'], required: true },
     date: { type: Date, default: Date.now }
 });
 
