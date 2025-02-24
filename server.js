@@ -1,6 +1,7 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
+const donationRoutes = require('./routes/donationRoutes');
 const cors = require("cors");
 
 dotenv.config();
@@ -11,6 +12,8 @@ app.use(express.json());
 app.use(cors());
 
 app.use("/api/auth", require("./routes/authRoutes"));
+
+app.use('/api', donationRoutes);
 
 app.get("/", (req, res) => {
     res.send("Mosque Management System API is running...");
