@@ -34,3 +34,12 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: "Server Error", error });
     }
 };
+
+exports.logout = async (req, res) => {
+    try {
+        res.json({ message: "Logout successful" });
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error });
+    }
+};
+

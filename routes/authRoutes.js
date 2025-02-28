@@ -9,5 +9,6 @@ router.post("/login", login);
 router.get("/homepage", authMiddleware, (req, res) => {
     res.json({ message: "Welcome to Homepage!" });
 });
+router.post("/logout", authMiddleware, authController.logout);
 
 module.exports = router;
