@@ -42,4 +42,24 @@ exports.logout = async (req, res) => {
         res.status(500).json({ message: "Server Error", error });
     }
 };
+exports.CreateAdminUser = async (req, res) => {
+    const { fullName, email, password } = req.body;
+    try {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) return res.status(400).json({ message: "User already exists" });
 
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = new User({
+            fullName,
+            email,
+            password: hashedPassword,
+            isAdmin: true, // 👈 Mark this user as admin
+        });
+
+        await newUser.save();
+        res.status(201).json({ message: "Admin user created successfully" });
+
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error });
+    }
+};

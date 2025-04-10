@@ -23,10 +23,26 @@ router.post('/donate', authMiddleware, async (req, res) => {
 });
 
 // GET /donations - Retrieve all donations
-router.get('/donations', authMiddleware, async (req, res) => {
-    const donations = await Donation.find({ userId: req.user.userId }).sort({ date: -1 });
-    res.status(200).json(donations);
-});
+// router.get('/donations', authMiddleware, async (req, res) => {
+//     const donations = await Donation.find({ userId: req.user.userId }).sort({ date: -1 });
+//     res.status(200).json(donations);
+// });
 
+// GET /donations - Retrieve donations for a specific user or all donations for admin
+router.get('/donations', authMiddleware, async (req, res) => {
+    try {
+        if (req.user.isAdmin) {
+            // Admin can see all donations
+            const donations = await Donation.find().sort({ date: -1 });
+            return res.status(200).json(donations);
+        } else {
+            // Non-admin can only see their donations
+            const donations = await Donation.find({ userId: req.user.userId }).sort({ date: -1 });
+            return res.status(200).json(donations);
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+});
 
 module.exports = router;
