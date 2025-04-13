@@ -22,13 +22,6 @@ router.post('/donate', authMiddleware, async (req, res) => {
     }
 });
 
-// GET /donations - Retrieve all donations
-// router.get('/donations', authMiddleware, async (req, res) => {
-//     const donations = await Donation.find({ userId: req.user.userId }).sort({ date: -1 });
-//     res.status(200).json(donations);
-// });
-
-// GET /donations - Retrieve donations for a specific user or all donations for admin
 router.get('/donations', authMiddleware, async (req, res) => {
     try {
         if (req.user.isAdmin) {
