@@ -1,7 +1,9 @@
 const express = require("express");
 const dotenv = require("dotenv");
+const path = require("path");
 const connectDB = require("./config/db");
 const donationRoutes = require('./routes/donationRoutes');
+const userRoutes = require("./routes/userRoutes");
 const cors = require("cors");
 
 dotenv.config();
@@ -12,6 +14,9 @@ app.use(express.json());
 app.use(cors());
 
 app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/api/user", userRoutes);
+
 
 app.use('/api', donationRoutes);
 
