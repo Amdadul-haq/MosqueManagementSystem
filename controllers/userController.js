@@ -5,7 +5,7 @@ const fs = require("fs");
 // Upload profile image
 exports.uploadProfileImage = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         const image = req.file.filename;
 
         const user = await User.findByIdAndUpdate(userId, { profileImage: image }, { new: true });
@@ -20,7 +20,7 @@ exports.uploadProfileImage = async (req, res) => {
 // Get user profile (name + image)
 exports.getUserProfile = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select("fullName profileImage");
+        const user = await User.findById(req.user.userId).select("fullName profileImage");
         if (!user) return res.status(404).json({ message: "User not found" });
 
         res.status(200).json(user);
