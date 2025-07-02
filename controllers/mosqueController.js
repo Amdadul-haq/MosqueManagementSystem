@@ -33,6 +33,7 @@ exports.createMosque = async (req, res) => {
         });
     } catch (error) {
         console.error('Error creating mosque:', error);
+        console.error('❌ Error creating mosque:', error); // ✅ Add this
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
