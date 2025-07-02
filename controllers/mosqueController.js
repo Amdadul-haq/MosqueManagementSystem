@@ -8,7 +8,7 @@ exports.createMosque = async (req, res) => {
         } = req.body;
 
         const mosqueCode = crypto.randomBytes(3).toString('hex').toUpperCase(); // 6-digit code
-        const adminId = req.user._id;
+        const adminId = req.user.userId;
 
         const newMosque = new Mosque({
             name,
