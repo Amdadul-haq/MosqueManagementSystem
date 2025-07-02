@@ -22,22 +22,6 @@ router.post('/donate', authMiddleware, async (req, res) => {
     }
 });
 
-// router.get('/donations', authMiddleware, async (req, res) => {
-//     try {
-//         if (req.user.isAdmin) {
-//             // Admin can see all donations
-//             const donations = await Donation.find().sort({ date: -1 });
-//             return res.status(200).json(donations);
-//         } else {
-//             // Non-admin can only see their donations
-//             const donations = await Donation.find({ userId: req.user.userId }).sort({ date: -1 });
-//             return res.status(200).json(donations);
-//         }
-//     } catch (error) {
-//         res.status(500).json({ message: 'Server error', error });
-//     }
-// });
-
 router.get('/donations', authMiddleware, async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
