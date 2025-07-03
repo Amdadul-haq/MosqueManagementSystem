@@ -1,4 +1,5 @@
 const Mosque = require('../models/Mosque');
+const User = require('../models/User'); // ✅ Add this line
 const crypto = require('crypto');
 
 exports.createMosque = async (req, res) => {
@@ -10,6 +11,10 @@ exports.createMosque = async (req, res) => {
         const mosqueCode = crypto.randomBytes(3).toString('hex').toUpperCase(); // 6-digit code
         const adminId = req.user.userId;
 
+        // ✅ Step 1: Update the user to become admin
+        await User.findByIdAndUpdate(adminId, { isAdmin: true });
+
+        // ✅ Step 2: Create the mosque
         const newMosque = new Mosque({
             name,
             address,
@@ -32,11 +37,11 @@ exports.createMosque = async (req, res) => {
             mosqueCode
         });
     } catch (error) {
-        console.error('Error creating mosque:', error);
-        console.error('❌ Error creating mosque:', error); // ✅ Add this
+        console.error('❌ Error creating mosque:', error);
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+
 
 exports.joinMosque = async (req, res) => {
     try {
