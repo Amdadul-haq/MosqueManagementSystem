@@ -1,7 +1,8 @@
 const Mosque = require('../models/Mosque');
-const User = require('../models/User'); // ✅ Add this line
+const User = require('../models/User');
 const crypto = require('crypto');
 
+// ✅ Create a mosque
 exports.createMosque = async (req, res) => {
     try {
         const {
@@ -9,12 +10,12 @@ exports.createMosque = async (req, res) => {
         } = req.body;
 
         const mosqueCode = crypto.randomBytes(3).toString('hex').toUpperCase(); // 6-digit code
-        const adminId = req.user.userId;
+        const adminId = req.user.userId; // ✅ Corrected
 
-        // ✅ Step 1: Update the user to become admin
+        // ✅ Step 1: Make user an admin
         await User.findByIdAndUpdate(adminId, { isAdmin: true });
 
-        // ✅ Step 2: Create the mosque
+        // ✅ Step 2: Create mosque
         const newMosque = new Mosque({
             name,
             address,
@@ -42,11 +43,11 @@ exports.createMosque = async (req, res) => {
     }
 };
 
-
+// ✅ Join mosque by code
 exports.joinMosque = async (req, res) => {
     try {
         const { code } = req.params;
-        const userId = req.user._id;
+        const userId = req.user.userId; // ✅ FIXED here
 
         const mosque = await Mosque.findOne({ mosqueCode: code });
 
@@ -71,11 +72,13 @@ exports.joinMosque = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+
 // ✅ Get all mosques for join list
 exports.getAllMosques = async (req, res) => {
     try {
         const mosques = await Mosque.find()
-            .select('name mosqueCode address village upazila zilla'); // only public info
+            .select('name mosqueCode address village upazila zilla'); // public info only
+
         res.status(200).json({ success: true, mosques });
     } catch (error) {
         console.error('❌ Error fetching mosques:', error);

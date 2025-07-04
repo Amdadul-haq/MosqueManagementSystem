@@ -4,16 +4,17 @@ const User = require("../models/User");
 
 // 🟡 1. Send Join Request
 exports.sendJoinRequest = async (req, res) => {
-    const userId = req.user._id;
+    const userId = req.user.userId; // ✅ FIXED HERE
     const { mosqueId } = req.body;
 
     try {
-        // Check if already a member
+        // Check if mosque exists
         const mosque = await Mosque.findById(mosqueId);
         if (!mosque) {
             return res.status(404).json({ success: false, message: "Mosque not found" });
         }
 
+        // Check if already a member
         if (mosque.members.includes(userId)) {
             return res.status(400).json({ success: false, message: "You are already a member of this mosque" });
         }
@@ -24,6 +25,7 @@ exports.sendJoinRequest = async (req, res) => {
             return res.status(400).json({ success: false, message: "Join request already sent" });
         }
 
+        // Save new join request
         const newRequest = new JoinRequest({ userId, mosqueId });
         await newRequest.save();
 
@@ -36,18 +38,18 @@ exports.sendJoinRequest = async (req, res) => {
 
 // 🟡 2. Get Pending Join Requests for Admin
 exports.getPendingRequests = async (req, res) => {
-    const adminId = req.user._id;
+    const adminId = req.user.userId; // ✅ FIXED
 
     try {
-        // Find mosques where the user is admin
         const mosques = await Mosque.find({ adminId });
-
         const mosqueIds = mosques.map(m => m._id);
 
         const requests = await JoinRequest.find({
             mosqueId: { $in: mosqueIds },
             status: "pending"
-        }).populate("userId", "fullName email").populate("mosqueId", "name");
+        })
+            .populate("userId", "fullName email")
+            .populate("mosqueId", "name");
 
         res.json({ success: true, requests });
     } catch (error) {
@@ -71,13 +73,11 @@ exports.approveRequest = async (req, res) => {
             return res.status(404).json({ success: false, message: "Mosque not found" });
         }
 
-        // Add user to mosque members
         if (!mosque.members.includes(request.userId)) {
             mosque.members.push(request.userId);
             await mosque.save();
         }
 
-        // Update request status
         request.status = "approved";
         await request.save();
 
