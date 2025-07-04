@@ -71,3 +71,14 @@ exports.joinMosque = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+// ✅ Get all mosques for join list
+exports.getAllMosques = async (req, res) => {
+    try {
+        const mosques = await Mosque.find()
+            .select('name mosqueCode address village upazila zilla'); // only public info
+        res.status(200).json({ success: true, mosques });
+    } catch (error) {
+        console.error('❌ Error fetching mosques:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
