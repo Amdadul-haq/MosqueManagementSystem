@@ -28,19 +28,43 @@ router.post('/donate', authMiddleware, async (req, res) => {
 //     try {
 //         const page = parseInt(req.query.page) || 1;
 //         const size = parseInt(req.query.size) || 10;
-//         const skip = (page - 1) * size;
+//         const donationMonth = req.query.month;
 
-//         const query = req.user.isAdmin ? {} : { userId: req.user.userId };
+//         const user = await User.findById(req.user.userId);
 
-//         const [donations, totalCount] = await Promise.all([
-//             Donation.find(query)
-//                 .sort({ date: -1 })
-//                 .skip(skip)
-//                 .limit(size),
-//             Donation.countDocuments(query)
-//         ]);
+//         let query = {};
 
-//         return res.status(200).json({
+//         // 🟢 If regular user → only their donations
+//         if (!user.isAdmin) {
+//             query.userId = user._id;
+//         } else {
+//             // 🟢 If admin → donations from mosque members
+//             if (!user.mosqueId) {
+//                 return res.status(400).json({ message: "Admin does not belong to a mosque" });
+//             }
+
+//             const mosque = await Mosque.findById(user.mosqueId);
+//             if (!mosque) {
+//                 return res.status(404).json({ message: "Mosque not found" });
+//             }
+
+//             query.userId = { $in: mosque.members };
+//         }
+
+//         // 🟢 Filter by donation month if provided
+//         if (donationMonth) {
+//             query.donationMonth = donationMonth;
+//         }
+
+//         const donations = await Donation.find(query)
+//             .sort({ date: -1 })
+//             .skip((page - 1) * size)
+//             .limit(size);
+
+//         const totalCount = await Donation.countDocuments(query);
+
+//         res.status(200).json({
+//             success: true,
 //             donations,
 //             currentPage: page,
 //             totalPages: Math.ceil(totalCount / size),
@@ -48,17 +72,19 @@ router.post('/donate', authMiddleware, async (req, res) => {
 //         });
 
 //     } catch (error) {
-//         res.status(500).json({ message: 'Server error', error });
+//         console.error("❌ Error fetching donations:", error);
+//         res.status(500).json({ success: false, message: "Server error" });
 //     }
 // });
+
 router.get('/donations', authMiddleware, async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const size = parseInt(req.query.size) || 10;
         const donationMonth = req.query.month;
+        const donationType = req.query.type;
 
         const user = await User.findById(req.user.userId);
-
         let query = {};
 
         // 🟢 If regular user → only their donations
@@ -78,9 +104,14 @@ router.get('/donations', authMiddleware, async (req, res) => {
             query.userId = { $in: mosque.members };
         }
 
-        // 🟢 Filter by donation month if provided
+        // ✅ Filter by donation month if provided
         if (donationMonth) {
             query.donationMonth = donationMonth;
+        }
+
+        // ✅ Filter by donation type if provided
+        if (donationType) {
+            query.donationType = donationType;
         }
 
         const donations = await Donation.find(query)
@@ -103,6 +134,7 @@ router.get('/donations', authMiddleware, async (req, res) => {
         res.status(500).json({ success: false, message: "Server error" });
     }
 });
+
 
 // 🔸 GET /api/donations/summary?month=July 2025
 router.get('/donations/summary', authMiddleware, async (req, res) => {
