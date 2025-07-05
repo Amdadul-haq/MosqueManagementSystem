@@ -43,20 +43,6 @@ exports.createMosque = async (req, res) => {
     }
 };
 
-
-// // ✅ Get all mosques for join list
-// exports.getAllMosques = async (req, res) => {
-//     try {
-//         const mosques = await Mosque.find()
-//             .select('name mosqueCode address village upazila zilla'); // public info only
-
-//         res.status(200).json({ success: true, mosques });
-//     } catch (error) {
-//         console.error('❌ Error fetching mosques:', error);
-//         res.status(500).json({ success: false, message: 'Server error' });
-//     }
-// };
-// ✅ Updated Get All Mosques with isMember flag
 exports.getAllMosques = async (req, res) => {
     try {
         const userId = req.user?.userId; // Only present if token provided
@@ -81,3 +67,22 @@ exports.getAllMosques = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+
+// GET /api/mosques/:id
+exports.getMosqueById = async (req, res) => {
+    const mosqueId = req.params.id;
+
+    try {
+        const mosque = await Mosque.findById(mosqueId);
+
+        if (!mosque) {
+            return res.status(404).json({ message: 'Mosque not found' });
+        }
+
+        res.status(200).json(mosque);
+    } catch (err) {
+        console.error('Error fetching mosque:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
