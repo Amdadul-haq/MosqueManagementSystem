@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
+const User = require('../models/User');
+const Mosque = require('../models/Mosque');
 
 const Donation = require('../models/Donation');
 
@@ -22,23 +24,74 @@ router.post('/donate', authMiddleware, async (req, res) => {
     }
 });
 
+// router.get('/donations', authMiddleware, async (req, res) => {
+//     try {
+//         const page = parseInt(req.query.page) || 1;
+//         const size = parseInt(req.query.size) || 10;
+//         const skip = (page - 1) * size;
+
+//         const query = req.user.isAdmin ? {} : { userId: req.user.userId };
+
+//         const [donations, totalCount] = await Promise.all([
+//             Donation.find(query)
+//                 .sort({ date: -1 })
+//                 .skip(skip)
+//                 .limit(size),
+//             Donation.countDocuments(query)
+//         ]);
+
+//         return res.status(200).json({
+//             donations,
+//             currentPage: page,
+//             totalPages: Math.ceil(totalCount / size),
+//             totalDonations: totalCount
+//         });
+
+//     } catch (error) {
+//         res.status(500).json({ message: 'Server error', error });
+//     }
+// });
 router.get('/donations', authMiddleware, async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const size = parseInt(req.query.size) || 10;
-        const skip = (page - 1) * size;
+        const donationMonth = req.query.month;
 
-        const query = req.user.isAdmin ? {} : { userId: req.user.userId };
+        const user = await User.findById(req.user.userId);
 
-        const [donations, totalCount] = await Promise.all([
-            Donation.find(query)
-                .sort({ date: -1 })
-                .skip(skip)
-                .limit(size),
-            Donation.countDocuments(query)
-        ]);
+        let query = {};
 
-        return res.status(200).json({
+        // 🟢 If regular user → only their donations
+        if (!user.isAdmin) {
+            query.userId = user._id;
+        } else {
+            // 🟢 If admin → donations from mosque members
+            if (!user.mosqueId) {
+                return res.status(400).json({ message: "Admin does not belong to a mosque" });
+            }
+
+            const mosque = await Mosque.findById(user.mosqueId);
+            if (!mosque) {
+                return res.status(404).json({ message: "Mosque not found" });
+            }
+
+            query.userId = { $in: mosque.members };
+        }
+
+        // 🟢 Filter by donation month if provided
+        if (donationMonth) {
+            query.donationMonth = donationMonth;
+        }
+
+        const donations = await Donation.find(query)
+            .sort({ date: -1 })
+            .skip((page - 1) * size)
+            .limit(size);
+
+        const totalCount = await Donation.countDocuments(query);
+
+        res.status(200).json({
+            success: true,
             donations,
             currentPage: page,
             totalPages: Math.ceil(totalCount / size),
@@ -46,8 +99,43 @@ router.get('/donations', authMiddleware, async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error });
+        console.error("❌ Error fetching donations:", error);
+        res.status(500).json({ success: false, message: "Server error" });
     }
 });
+
+// 🔸 GET /api/donations/summary?month=July 2025
+router.get('/donations/summary', authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.userId);
+        const month = req.query.month;
+
+        if (!month) {
+            return res.status(400).json({ success: false, message: "Month is required" });
+        }
+
+        let query = { donationMonth: month };
+
+        if (user.isAdmin) {
+            const mosque = await Mosque.findById(user.mosqueId);
+            if (!mosque) {
+                return res.status(404).json({ success: false, message: "Mosque not found" });
+            }
+            query.userId = { $in: mosque.members };
+        } else {
+            query.userId = user._id;
+        }
+
+        const donations = await Donation.find(query);
+
+        const totalAmount = donations.reduce((sum, donation) => sum + parseFloat(donation.amount), 0);
+
+        res.status(200).json({ success: true, totalAmount });
+    } catch (error) {
+        console.error("❌ Error in summary route:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
 
 module.exports = router;
