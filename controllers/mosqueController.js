@@ -43,43 +43,39 @@ exports.createMosque = async (req, res) => {
     }
 };
 
-// ✅ Join mosque by code
-exports.joinMosque = async (req, res) => {
-    try {
-        const { code } = req.params;
-        const userId = req.user.userId; // ✅ FIXED here
 
-        const mosque = await Mosque.findOne({ mosqueCode: code });
+// // ✅ Get all mosques for join list
+// exports.getAllMosques = async (req, res) => {
+//     try {
+//         const mosques = await Mosque.find()
+//             .select('name mosqueCode address village upazila zilla'); // public info only
 
-        if (!mosque) {
-            return res.status(404).json({ success: false, message: 'Mosque not found' });
-        }
-
-        if (mosque.members.includes(userId)) {
-            return res.status(400).json({ success: false, message: 'Already joined' });
-        }
-
-        mosque.members.push(userId);
-        await mosque.save();
-
-        res.json({
-            success: true,
-            message: 'Joined mosque successfully',
-            mosqueId: mosque._id
-        });
-    } catch (error) {
-        console.error('Join mosque error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
-    }
-};
-
-// ✅ Get all mosques for join list
+//         res.status(200).json({ success: true, mosques });
+//     } catch (error) {
+//         console.error('❌ Error fetching mosques:', error);
+//         res.status(500).json({ success: false, message: 'Server error' });
+//     }
+// };
+// ✅ Updated Get All Mosques with isMember flag
 exports.getAllMosques = async (req, res) => {
     try {
-        const mosques = await Mosque.find()
-            .select('name mosqueCode address village upazila zilla'); // public info only
+        const userId = req.user?.userId; // Only present if token provided
 
-        res.status(200).json({ success: true, mosques });
+        const mosques = await Mosque.find()
+            .select('name mosqueCode address village upazila zilla members');
+
+        const result = mosques.map(mosque => ({
+            _id: mosque._id,
+            name: mosque.name,
+            mosqueCode: mosque.mosqueCode,
+            address: mosque.address,
+            village: mosque.village,
+            upazila: mosque.upazila,
+            zilla: mosque.zilla,
+            isMember: userId ? mosque.members.includes(userId) : false
+        }));
+
+        res.status(200).json({ success: true, mosques: result });
     } catch (error) {
         console.error('❌ Error fetching mosques:', error);
         res.status(500).json({ success: false, message: 'Server error' });
