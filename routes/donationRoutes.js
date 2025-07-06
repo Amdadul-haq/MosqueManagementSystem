@@ -136,38 +136,38 @@ router.post('/donate', authMiddleware, async (req, res) => {
 // });
 
 
-// // 🔸 GET /api/donations/summary?month=July 2025
-// router.get('/donations/summary', authMiddleware, async (req, res) => {
-//     try {
-//         const user = await User.findById(req.user.userId);
-//         const month = req.query.month;
+// 🔸 GET /api/donations/summary?month=July 2025
+router.get('/donations/summary', authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.userId);
+        const month = req.query.month;
 
-//         if (!month) {
-//             return res.status(400).json({ success: false, message: "Month is required" });
-//         }
+        if (!month) {
+            return res.status(400).json({ success: false, message: "Month is required" });
+        }
 
-//         let query = { donationMonth: month };
+        let query = { donationMonth: month };
 
-//         if (user.isAdmin) {
-//             const mosque = await Mosque.findById(user.mosqueId);
-//             if (!mosque) {
-//                 return res.status(404).json({ success: false, message: "Mosque not found" });
-//             }
-//             query.userId = { $in: mosque.members };
-//         } else {
-//             query.userId = user._id;
-//         }
+        if (user.isAdmin) {
+            const mosque = await Mosque.findById(user.mosqueId);
+            if (!mosque) {
+                return res.status(404).json({ success: false, message: "Mosque not found" });
+            }
+            query.userId = { $in: mosque.members };
+        } else {
+            query.userId = user._id;
+        }
 
-//         const donations = await Donation.find(query);
+        const donations = await Donation.find(query);
 
-//         const totalAmount = donations.reduce((sum, donation) => sum + parseFloat(donation.amount), 0);
+        const totalAmount = donations.reduce((sum, donation) => sum + parseFloat(donation.amount), 0);
 
-//         res.status(200).json({ success: true, totalAmount });
-//     } catch (error) {
-//         console.error("❌ Error in summary route:", error);
-//         res.status(500).json({ success: false, message: "Server error" });
-//     }
-// });
+        res.status(200).json({ success: true, totalAmount });
+    } catch (error) {
+        console.error("❌ Error in summary route:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
 
 router.get('/donations', authMiddleware, async (req, res) => {
     try {
