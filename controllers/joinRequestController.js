@@ -59,6 +59,7 @@ exports.getPendingRequests = async (req, res) => {
 };
 
 // 🟡 3. Approve Join Request
+// 🟡 3. Approve Join Request
 exports.approveRequest = async (req, res) => {
     const { requestId } = req.params;
 
@@ -78,6 +79,11 @@ exports.approveRequest = async (req, res) => {
             await mosque.save();
         }
 
+        // ✅ Fix: Assign mosqueId to the user as well
+        await User.findByIdAndUpdate(request.userId, {
+            mosqueId: request.mosqueId
+        });
+
         request.status = "approved";
         await request.save();
 
@@ -87,6 +93,7 @@ exports.approveRequest = async (req, res) => {
         res.status(500).json({ success: false, message: "Server error" });
     }
 };
+
 
 // 🟡 4. Reject Join Request
 exports.rejectRequest = async (req, res) => {
