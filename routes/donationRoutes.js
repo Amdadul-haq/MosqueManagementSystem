@@ -77,59 +77,6 @@ router.get('/donations/summary', authMiddleware, async (req, res) => {
     }
 });
 
-
-// router.get('/donations', authMiddleware, async (req, res) => {
-//     try {
-//         const page = parseInt(req.query.page) || 1;
-//         const size = parseInt(req.query.size) || 10;
-//         const donationMonth = req.query.month;
-//         const donationType = req.query.type;
-//         const minAmount = parseFloat(req.query.minAmount);
-//         const maxAmount = parseFloat(req.query.maxAmount);
-
-//         const user = await User.findById(req.user.userId);
-//         let query = {};
-
-//         // ✅ Filter by role
-//         if (user.isAdmin) {
-//             if (!user.mosqueId) return res.status(400).json({ message: "Admin does not belong to a mosque" });
-//             query.mosqueId = user.mosqueId;
-//         } else {
-//             query.userId = user._id;
-//             query.mosqueId = user.mosqueId; // ✅ this ensures correct filtering
-//         }
-
-//         // ✅ Optional filters
-//         if (donationMonth) query.donationMonth = donationMonth;
-//         if (donationType) query.donationType = donationType;
-
-//         // ✅ Amount filter
-//         if (!isNaN(minAmount) || !isNaN(maxAmount)) {
-//             query.amount = {};
-//             if (!isNaN(minAmount)) query.amount.$gte = minAmount;
-//             if (!isNaN(maxAmount)) query.amount.$lte = maxAmount;
-//         }
-
-//         const donations = await Donation.find(query)
-//             .sort({ date: -1 })
-//             .skip((page - 1) * size)
-//             .limit(size);
-
-//         const totalCount = await Donation.countDocuments(query);
-
-//         res.status(200).json({
-//             success: true,
-//             donations,
-//             currentPage: page,
-//             totalPages: Math.ceil(totalCount / size),
-//             totalDonations: totalCount
-//         });
-
-//     } catch (error) {
-//         console.error("❌ Error fetching donations:", error);
-//         res.status(500).json({ success: false, message: "Server error" });
-//     }
-// }); 
 router.get('/donations', authMiddleware, async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
