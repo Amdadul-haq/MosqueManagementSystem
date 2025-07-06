@@ -9,27 +9,29 @@ const Donation = require('../models/Donation');
 // POST /donate - Store donation details
 router.post('/donate', authMiddleware, async (req, res) => {
     try {
-        const { donorName, donationType, donationMonth, amount, paymentMethod } = req.body;
+        const { donorName, donationType, donationMonth, amount, paymentMethod, mosqueId } = req.body;
 
-        if (!donorName || !donationType || !donationMonth || !amount || !paymentMethod) {
-            return res.status(400).json({ success: false, message: 'All fields are required' });
+        if (!donorName || !donationType || !donationMonth || !amount || !paymentMethod || !mosqueId) {
+            return res.status(400).json({ success: false, message: 'All fields are required including mosqueId' });
         }
 
-        // 🟢 Find the user and ensure they belong to a mosque
         const user = await User.findById(req.user.userId);
-        if (!user || !user.mosqueId) {
-            return res.status(400).json({ success: false, message: 'User must be part of a mosque to donate' });
+
+        // ✅ Check if user is part of that mosque
+        const mosque = await Mosque.findById(mosqueId);
+        if (!mosque || !mosque.members.includes(user._id)) {
+            return res.status(403).json({ success: false, message: 'You are not a member of this mosque' });
         }
 
-        // 🟢 Save with mosqueId and userId
+        // ✅ Save donation
         const donation = new Donation({
             donorName,
             donationType,
             donationMonth,
             amount: parseFloat(amount),
             paymentMethod,
-            userId: req.user.userId,
-            mosqueId: user.mosqueId  // ✅ key point
+            userId: user._id,
+            mosqueId: mosqueId
         });
 
         await donation.save();
@@ -37,7 +39,7 @@ router.post('/donate', authMiddleware, async (req, res) => {
         res.status(201).json({ success: true, message: 'Donation recorded successfully', donation });
     } catch (error) {
         console.error("❌ Donation error:", error);
-        res.status(500).json({ success: false, message: 'Server error', error });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 
