@@ -7,6 +7,7 @@ const donationSchema = new mongoose.Schema({
     amount: { type: Number, required: true },
     paymentMethod: { type: String, enum: ['Bkash', 'Nagad', 'Rocket', 'By Hand'], required: true },
     date: { type: Date, default: Date.now },
+    mosqueId: { type: mongoose.Schema.Types.ObjectId, ref: 'Mosque', required: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 });
 
